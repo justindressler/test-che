@@ -1,0 +1,418 @@
+schemaVersion: 2.0.0
+metadata:
+  name: vroc-analytics
+  attributes:
+    metadata-name-field: name
+projects:
+  - attributes:
+      source-origin: branch
+    name: vroc-advanced-chart
+    clonePath: plugins/vroc-advanced-chart
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-advanced-chart.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: piechart-panel
+    clonePath: plugins/piechart-panel
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/piechart-panel.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: configuration-tree-grafana-app
+    clonePath: plugins/configuration-tree-grafana-app
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/configuration-tree-grafana-app.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: dashboards-plugin-tornado-graph
+    clonePath: plugins/dashboards-plugin-tornado-graph
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/dashboards-plugin-tornado-graph.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-scripted-dashboards
+    clonePath: plugins/vroc-scripted-dashboards
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-scripted-dashboards.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: screen-render
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/screen-render.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-dynamic-dashboard-templates
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-dynamic-dashboard-templates.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-portal
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-portal.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: data-services
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/data-services.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-cluster-service
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-cluster-service.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-api
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-api.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: model-design-module
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/model-design-module.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: licensing
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/licensing.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-spark
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-spark.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-dev-tools
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-dev-tools.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: grafana-discrete-panel
+    clonePath: plugins/grafana-discrete-panel
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/grafana-discrete-panel.git
+      checkoutFrom:
+        revision: develop
+  - attributes:
+      source-origin: branch
+    name: vroc-problemstatement-dashboard-app
+    clonePath: plugins/vroc-problemstatement-dashboard-app
+    git:
+      remotes:
+        origin: git@bitbucket.org:vroc/vroc-problemstatement-dashboard-app.git
+      checkoutFrom:
+        revision: develop
+components:
+  - name: javamaven
+    container:
+      image: docker.k8s.vroc.ai/vroc/che-scada-lts:0.0.27-SNAPSHOT
+      cpuLimit: '4'
+      memoryLimit: 2Gi
+      mountSources: true
+      env:
+        - name: MAVEN_CONFIG
+          value: ''
+        - name: JAVA_OPTS
+          value: >-
+            -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+            -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+            -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+            -Xms20m -Djava.security.egd=file:/dev/./urandom
+            -Duser.home=/home/user
+        - name: MAVEN_OPTS
+          value: $(JAVA_OPTS)
+        - name: KUBECONFIG
+          value: /projects/vroc-dev-tools/kubernetes/kubernetes-config
+      volumeMounts:
+        - name: m2
+          path: /home/user/.m2
+      endpoints:
+        - name: Portal-Dashboard
+          targetPort: 3001
+        - name: VROC-API
+          targetPort: 5000
+          attributes:
+            public: 'false'
+          exposure: internal
+        - name: VROC-API-Remote-Debug
+          targetPort: 5005
+        - name: Live-Reload
+          targetPort: 35729
+          attributes:
+            protocol: wss
+  - name: postgresdb
+    container:
+      image: quay.io/eclipse/che-postgres:latest
+      cpuLimit: 500m
+      memoryLimit: 1Gi
+      mountSources: true
+      env:
+        - name: POSTGRESQL_USER
+          value: vroc
+        - name: POSTGRESQL_DATABASE
+          value: vroc
+        - name: POSTGRESQL_PASSWORD
+          value: password
+      volumeMounts:
+        - name: postgres-data
+          path: /var/lib/pgsql/data
+      endpoints:
+        - name: Local-Postgres-Database
+          targetPort: 5432
+          attributes:
+            public: 'false'
+          exposure: internal
+commands:
+  - id: Clean Projects
+    exec:
+      commandLine: >-
+        cd vroc-api && mvn clean && cd ../data-services && mvn clean && cd
+        ../licensing && mvn clean && cd ../model-design-module && mvn clean &&
+        cd ../vroc-cluster-service && mvn clean
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/
+  - id: Get kubernetes token
+    exec:
+      commandLine: >-
+        kubectl get pods && cat
+        ${CHE_PROJECTS_ROOT}/vroc-dev-tools/kubernetes/kubelogin/cache/* | jq
+        .access_token
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}
+  - id: 0.a) Build all for vroc-api
+    exec:
+      commandLine: >-
+        cd ${CHE_PROJECTS_ROOT}/data-services && mvn install && cd
+        ${CHE_PROJECTS_ROOT}/licensing && mvn install && cd
+        ${CHE_PROJECTS_ROOT}/model-design-module && mvn install && cd
+        ${CHE_PROJECTS_ROOT}/vroc-api && mvn install -P !production && cd
+        ${CHE_PROJECTS_ROOT}/vroc-cluster-service && mvn install
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-api
+  - id: 0.b) Build all for vroc-portal
+    exec:
+      commandLine: >-
+        env GO111MODULE=on go install github.com/unknwon/bra &&
+        ./vroc-build-go.sh && ./vroc-build-npm.sh && cd
+        ${CHE_PROJECTS_ROOT}/vroc-dynamic-dashboard-templates &&
+        ./setup-che-workspace.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-portal
+  - id: 0.c) Build ConfigTree
+    exec:
+      commandLine: yarn install && yarn run build
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/configuration-tree-grafana-app
+  - id: 0.d) Build Scripted Dashboards
+    exec:
+      commandLine: ./build.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/vroc-scripted-dashboards
+  - id: 0.e) Build Dyanamic Dashboards
+    exec:
+      commandLine: ./setup-che-workspace.sh && yarn run updatePortal
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-dynamic-dashboard-templates
+  - id: 0.f) Build VROC Advanced Chart Plugin
+    exec:
+      commandLine: yarn install && yarn run build
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/vroc-advanced-chart
+  - id: 0.g) Build VROC Problem Statemnet Dashboard
+    exec:
+      commandLine: yarn install && yarn run build
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/vroc-problemstatement-dashboard-app
+  - id: 1) Debug VROC-API
+    exec:
+      commandLine: cd test && ./debug-run-api.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-api
+  - id: 2.a) Watch Dynamic Dashboard
+    exec:
+      commandLine: yarn run watch
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-dynamic-dashboard-templates
+  - id: 2.b) Watch Scripted Dashboard
+    exec:
+      commandLine: yarn run watch
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/vroc-scripted-dashboards
+  - id: 2.c) Watch VROC Portal
+    exec:
+      commandLine: bra run & yarn run watch
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-portal
+  - id: 2.d) Watch ConfigTree
+    exec:
+      commandLine: yarn run watch:nolint
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/configuration-tree-grafana-app
+  - id: 2.e) Watch VROC Advanced Chart Plugin
+    exec:
+      commandLine: yarn run watch
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/vroc-advanced-chart
+  - id: 2.f) Watch VROC Problem Statemnet Dashboard
+    exec:
+      commandLine: yarn run watch
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/plugins/vroc-problemstatement-dashboard-app
+  - id: Setup Database (run after 2.b)
+    exec:
+      commandLine: psql -f VROC/che/init-database.sql
+      component: postgresdb
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-portal
+  - id: Build data-services
+    exec:
+      commandLine: ./build.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/data-services
+  - id: Build licensing
+    exec:
+      commandLine: ./build.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/licensing
+  - id: Build model-design-module
+    exec:
+      commandLine: ./build.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/model-design-module
+  - id: Build vroc-cluster-service
+    exec:
+      commandLine: ./build.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-cluster-service
+  - id: Build vroc-api
+    exec:
+      commandLine: ./build.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-api
+  - id: Deploy data-services
+    exec:
+      commandLine: ./deploy.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/data-services
+  - id: Deploy licensing
+    exec:
+      commandLine: ./deploy.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/licensing
+  - id: Deploy model-design-module
+    exec:
+      commandLine: ./deploy.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/model-design-module
+  - id: Deploy vroc-cluster-service
+    exec:
+      commandLine: ./deploy.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-cluster-service
+  - id: Deploy vroc-api
+    exec:
+      commandLine: ./deploy.sh
+      component: javamaven
+      workingDir: ${CHE_PROJECTS_ROOT}/vroc-api
+attributes:
+  .che/che-theia-plugins.yaml: |
+    - id: redhat/vscode-commons/latest
+      override:
+        sidecar: {}
+    - id: redhat/fabric8-analytics/latest
+      override:
+        sidecar: {}
+    - id: vscode/typescript-language-features/latest
+      override:
+        sidecar: {}
+    - id: golang/go/latest
+      override:
+        sidecar: {}
+    - id: eamodio/gitlens/latest
+      override:
+        sidecar: {}
+    - id: dbaeumer/vscode-eslint/latest
+      override:
+        sidecar: {}
+    - id: redhat/java11/latest
+      override:
+        sidecar:
+          memoryLimit: 4Gi
+          cpuLimit: '4'
+        preferences:
+          java.configuration.maven.userSettings: /home/user/.m2/settings.xml
+          redhat.telemetry.enabled: false
+          git.autofetch: true
+          java.server.launchMode: Standard
+          editor.detectIndentation: 'true'
+          gulp.autoDetect: 'off'
+          java.configuration.updateBuildConfiguration: automatic
+          java.debug.settings.hotCodeReplace: auto
+          editor.autoSave: 'on'
+          editor.insertSpaces: false
+          java.referencesCodeLens.enabled: true
+          java.implementationsCodeLens.enabled: true
+          java.maven.downloadSources: false
+          grunt.autoDetect: 'off'
+          java.semanticHighlighting.enabled: true
+          java.maven.updateSnapshots: false
+          java.requirements.JDK11Warning: false
+          go.toolsManagement.autoUpdate: true
+  .vscode/extensions.json: |-
+    {
+      "recommendations": [
+        "redhat/vscode-commons",
+        "redhat/fabric8-analytics",
+        "vscode/typescript-language-features",
+        "golang/go",
+        "eamodio/gitlens",
+        "dbaeumer/vscode-eslint",
+        "redhat/java11"
+      ]
+    }
+  .che/che-editor.yaml: |
+    id: eclipse/che-theia/next
