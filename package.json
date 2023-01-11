@@ -1,0 +1,14 @@
+{
+  "name": "devfile-convertor",
+  "version": "1.0.0",
+  "main": "convert-devfile.js",
+  "type": "module",
+  "repository": "https://github.com/justindressler/test-che",
+  "author": "Justin Dressler",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@eclipse-che/devfile-converter": "^0.0.1-7ae0484",
+    "yargs": "^17.6.2"
+  }
+}
